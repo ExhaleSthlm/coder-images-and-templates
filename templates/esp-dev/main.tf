@@ -17,6 +17,11 @@ provider "kubernetes" {}
 data "coder_workspace" "me" {}
 data "coder_workspace_owner" "me" {}
 
+locals {
+  # renovate: datasource=docker depName=ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev
+  workspace_image = "ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev:main@sha256:5e583508c969502177587805ae49ac70c52a403c10b5dfab1979195c4ad83c57"
+}
+
 data "coder_parameter" "cpu" {
   name         = "cpu"
   display_name = "CPU"
@@ -200,7 +205,7 @@ resource "kubernetes_deployment_v1" "workspace" {
 
         container {
           name  = "desktop"
-          image = "ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev:main"
+          image = local.workspace_image
 
           env {
             name  = "PUID"
@@ -278,7 +283,7 @@ resource "kubernetes_deployment_v1" "workspace" {
 
         container {
           name    = "coder-agent"
-          image   = "ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev:main"
+          image   = local.workspace_image
           command = ["sh", "-c", coder_agent.main.init_script]
 
           env {

@@ -22,5 +22,13 @@
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG [A-Z0-9_]+_VERSION=(?<currentValue>\\S+)",
       ],
     },
+    {
+      customType: "regex",
+      fileMatch: ["^templates/.+\\.tf$"],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>docker) depName=(?<depName>\\S+)\\n\\s*workspace_image\\s*=\\s*\"[^:\"]+:[^@\"]+@(?<currentDigest>sha256:[a-f0-9]+)\"",
+      ],
+      currentValueTemplate: "main",
+    },
   ],
 }
