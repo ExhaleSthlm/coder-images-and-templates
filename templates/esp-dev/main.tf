@@ -19,7 +19,7 @@ data "coder_workspace_owner" "me" {}
 
 locals {
   # renovate: datasource=docker depName=ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev
-  workspace_image = "ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev:main@sha256:5e583508c969502177587805ae49ac70c52a403c10b5dfab1979195c4ad83c57"
+  workspace_image = "ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev:main@sha256:dc0721ee25235486c7adf509c7d9897ff787359e9202e631269be127d5ec8313"
 }
 
 data "coder_parameter" "cpu" {
