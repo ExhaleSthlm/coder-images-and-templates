@@ -1,0 +1,22 @@
+#!/usr/bin/with-contenv bash
+set -euo pipefail
+
+install -d -o abc -g abc /config/workspace
+install -d -o abc -g abc /config/.vscode/extensions
+install -d -o abc -g abc /config/.config/Code/User
+install -d -o abc -g abc /config/.config/autostart
+
+cp -a --no-clobber /opt/vscode-extensions/. /config/.vscode/extensions/
+chown -R abc:abc /config/.vscode/extensions
+
+if [[ ! -e /config/.config/Code/User/settings.json ]]; then
+  install -o abc -g abc -m 0644 \
+    /opt/workspace-defaults/settings.json \
+    /config/.config/Code/User/settings.json
+fi
+
+if [[ ! -e /config/.config/autostart/code.desktop ]]; then
+  install -o abc -g abc -m 0644 \
+    /opt/workspace-defaults/code.desktop \
+    /config/.config/autostart/code.desktop
+fi

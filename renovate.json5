@@ -1,0 +1,26 @@
+{
+  extends: [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+  ],
+  timezone: "Europe/Stockholm",
+  schedule: ["before 06:00 on monday"],
+  packageRules: [
+    {
+      matchManagers: ["dockerfile", "github-actions"],
+      matchUpdateTypes: ["minor", "patch", "digest"],
+      automerge: true,
+      platformAutomerge: true,
+    },
+  ],
+  customManagers: [
+    {
+      customType: "regex",
+      fileMatch: ["^images/esp-dev/Dockerfile$"],
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG [A-Z0-9_]+_VERSION=(?<currentValue>\\S+)",
+      ],
+    },
+  ],
+}
