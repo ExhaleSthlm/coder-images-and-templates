@@ -266,7 +266,6 @@ resource "kubernetes_deployment_v1" "workspace" {
           security_context {
             allow_privilege_escalation = false
             capabilities {
-              add  = ["IPC_LOCK"]
               drop = ["ALL"]
             }
           }
