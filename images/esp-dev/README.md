@@ -17,6 +17,10 @@ Coder template.
 The image contains no credentials. GitHub, Codex, MQTT and device credentials
 must be configured at runtime and are persisted under `/config`.
 
+ESP-IDF toolchains are installed into `/config/.espressif` during the first
+desktop start. This keeps OCI layers small enough for Talos/containerd and
+persists the downloaded tools across workspace restarts and image updates.
+
 ## Remote serial
 
 An RFC2217 endpoint can be used without exposing USB devices to the workspace:

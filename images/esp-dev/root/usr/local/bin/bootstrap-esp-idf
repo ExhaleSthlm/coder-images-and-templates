@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state="${ESP_IDF_VERSION}:${ESP_IDF_TARGETS}"
+state_file="${IDF_TOOLS_PATH}/.coder-toolchain-state"
+lock_file="${IDF_TOOLS_PATH}/.coder-toolchain.lock"
+
+mkdir -p "${IDF_TOOLS_PATH}"
+exec 9>"${lock_file}"
+flock 9
+
+if [[ -f "${state_file}" ]] && [[ "$(<"${state_file}")" == "${state}" ]]; then
+  exit 0
+fi
+
+echo "Installing ESP-IDF ${ESP_IDF_VERSION} tools for ${ESP_IDF_TARGETS}..."
+"${IDF_PATH}/install.sh" "${ESP_IDF_TARGETS}"
+rm -rf "${IDF_TOOLS_PATH}/dist" "${IDF_TOOLS_PATH}/.cache"
+printf '%s\n' "${state}" >"${state_file}"

@@ -30,7 +30,9 @@ ARG YQ_VERSION=v4.54.1
 
 ENV DEBIAN_FRONTEND=noninteractive \
     IDF_PATH=/opt/esp/idf \
-    IDF_TOOLS_PATH=/opt/esp/tools \
+    IDF_TOOLS_PATH=/config/.espressif \
+    ESP_IDF_VERSION=${ESP_IDF_VERSION} \
+    ESP_IDF_TARGETS=${ESP_IDF_TARGETS} \
     PATH=/opt/esp-tools/bin:/opt/esphome/bin:/opt/platformio/bin:/usr/local/bin:${PATH}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -150,9 +152,7 @@ RUN python3 -m venv /opt/esp-tools \
 
 RUN git clone --branch "${ESP_IDF_VERSION}" --depth 1 --recursive \
       https://github.com/espressif/esp-idf.git "${IDF_PATH}" \
-    && "${IDF_PATH}/install.sh" "${ESP_IDF_TARGETS}" \
-    && rm -rf "${IDF_PATH}/.git" "${IDF_TOOLS_PATH}/dist" \
-      "${IDF_TOOLS_PATH}/.cache" /root/.cache \
+    && rm -rf "${IDF_PATH}/.git" \
     && printf '%s\n' \
       "export IDF_PATH=${IDF_PATH}" \
       "export IDF_TOOLS_PATH=${IDF_TOOLS_PATH}" \
@@ -171,8 +171,9 @@ RUN install -d /opt/vscode-extensions /tmp/vscode-data \
 COPY defaults/ /opt/workspace-defaults/
 COPY root/ /
 
-RUN chmod 0755 /custom-cont-init.d/20-coder-workspace /usr/local/bin/idf.py \
-    && chmod -R a+rX /opt/esp /opt/esp-tools /opt/esphome /opt/platformio \
+RUN chmod 0755 /custom-cont-init.d/20-coder-workspace \
+      /usr/local/bin/bootstrap-esp-idf /usr/local/bin/idf.py \
+    && chmod -R a+rX /opt/esp-tools /opt/esphome /opt/platformio \
       /opt/vscode-extensions /opt/workspace-defaults
 
 ENV DEBIAN_FRONTEND=

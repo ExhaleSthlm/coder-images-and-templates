@@ -8,6 +8,8 @@
   "cmake.generator": "Ninja",
   "editor.formatOnSave": true,
   "editor.rulers": [100],
+  "idf.espIdfPath": "/opt/esp/idf",
+  "idf.toolsPath": "/config/.espressif",
   "files.trimTrailingWhitespace": true,
   "git.autofetch": true,
   "python.defaultInterpreterPath": "/usr/bin/python3",

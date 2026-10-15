@@ -5,6 +5,7 @@ install -d -o abc -g abc /config/workspace
 install -d -o abc -g abc /config/.vscode/extensions
 install -d -o abc -g abc /config/.config/Code/User
 install -d -o abc -g abc /config/.config/autostart
+install -d -o abc -g abc /config/.espressif
 
 cp -a --no-clobber /opt/vscode-extensions/. /config/.vscode/extensions/
 chown -R abc:abc /config/.vscode/extensions
@@ -20,3 +21,5 @@ if [[ ! -e /config/.config/autostart/code.desktop ]]; then
     /opt/workspace-defaults/code.desktop \
     /config/.config/autostart/code.desktop
 fi
+
+s6-setuidgid abc /usr/local/bin/bootstrap-esp-idf
