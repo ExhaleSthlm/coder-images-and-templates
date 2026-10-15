@@ -8,6 +8,7 @@ ARG TARGETARCH
 ARG VSCODE_VERSION=1.142.0
 # renovate: datasource=github-releases depName=espressif/esp-idf
 ARG ESP_IDF_VERSION=v6.1
+ARG ESP_IDF_TARGETS=esp32,esp32s2,esp32s3,esp32c2,esp32c3,esp32c6,esp32h2
 # renovate: datasource=github-releases depName=arduino/arduino-cli
 ARG ARDUINO_CLI_VERSION=v1.5.1
 # renovate: datasource=github-releases depName=cli/cli
@@ -149,7 +150,9 @@ RUN python3 -m venv /opt/esp-tools \
 
 RUN git clone --branch "${ESP_IDF_VERSION}" --depth 1 --recursive \
       https://github.com/espressif/esp-idf.git "${IDF_PATH}" \
-    && "${IDF_PATH}/install.sh" all \
+    && "${IDF_PATH}/install.sh" "${ESP_IDF_TARGETS}" \
+    && rm -rf "${IDF_PATH}/.git" "${IDF_TOOLS_PATH}/dist" \
+      "${IDF_TOOLS_PATH}/.cache" /root/.cache \
     && printf '%s\n' \
       "export IDF_PATH=${IDF_PATH}" \
       "export IDF_TOOLS_PATH=${IDF_TOOLS_PATH}" \
