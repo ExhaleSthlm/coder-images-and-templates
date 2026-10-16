@@ -9,7 +9,7 @@
   "editor.formatOnSave": true,
   "editor.rulers": [100],
   "idf.espIdfPath": "/opt/esp/idf",
-  "idf.toolsPath": "/config/.espressif",
+  "idf.toolsPath": "/home/coder/.espressif",
   "files.trimTrailingWhitespace": true,
   "git.autofetch": true,
   "python.defaultInterpreterPath": "/usr/bin/python3",

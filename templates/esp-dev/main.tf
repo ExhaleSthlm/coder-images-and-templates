@@ -19,7 +19,7 @@ data "coder_workspace_owner" "me" {}
 
 locals {
   # renovate: datasource=docker depName=ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev
-  workspace_image = "ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev:main@sha256:dc0721ee25235486c7adf509c7d9897ff787359e9202e631269be127d5ec8313"
+  workspace_image = "ghcr.io/exhalesthlm/coder-images-and-templates/esp-dev:main@sha256:59d7fdad151209c77c9ae22fee1112c39de8da82d0c31cae75d8a4eb76e218dc"
 }
 
 data "coder_parameter" "cpu" {
@@ -81,7 +81,7 @@ resource "coder_agent" "main" {
 
   startup_script = <<-EOT
     set -eu
-    mkdir -p /config/workspace
+    /usr/local/bin/coder-workspace-init
     git config --global init.defaultBranch main
   EOT
 
@@ -104,27 +104,20 @@ resource "coder_agent" "main" {
   metadata {
     display_name = "Workspace Disk"
     key          = "workspace_disk"
-    script       = "coder stat disk --path /config"
+    script       = "coder stat disk --path /home/coder"
     interval     = 60
     timeout      = 1
   }
 }
 
-resource "coder_app" "desktop" {
-  agent_id     = coder_agent.main.id
-  slug         = "desktop"
-  display_name = "ESP Development Desktop"
-  icon         = "/icon/code.svg"
-  url          = "http://localhost:3000"
-  subdomain    = false
-  share        = "owner"
-  open_in      = "slim-window"
-
-  healthcheck {
-    url       = "http://localhost:3000"
-    interval  = 5
-    threshold = 36
-  }
+module "selkies" {
+  count               = data.coder_workspace.me.start_count
+  source              = "git::https://github.com/selkies-project/selkies.git//addons/coder?ref=2.0.0"
+  agent_id            = coder_agent.main.id
+  desktop_environment = "xfce"
+  selkies_version     = "2.0.0"
+  subdomain           = false
+  share               = "owner"
 }
 
 resource "kubernetes_persistent_volume_claim_v1" "workspace" {
@@ -204,50 +197,25 @@ resource "kubernetes_deployment_v1" "workspace" {
         }
 
         container {
-          name  = "desktop"
-          image = local.workspace_image
+          name    = "workspace"
+          image   = local.workspace_image
+          command = ["sh", "-c", coder_agent.main.init_script]
 
           env {
-            name  = "PUID"
-            value = "1000"
+            name  = "CODER_AGENT_TOKEN"
+            value = coder_agent.main.token
           }
           env {
-            name  = "PGID"
-            value = "1000"
+            name  = "HOME"
+            value = "/home/coder"
           }
           env {
             name  = "TZ"
             value = "Europe/Stockholm"
           }
           env {
-            name  = "TITLE"
-            value = "ESP Dev - ${data.coder_workspace.me.name}"
-          }
-          env {
-            name  = "PIXELFLUX_WAYLAND"
-            value = "true"
-          }
-          env {
-            name  = "AUTO_GPU"
-            value = "true"
-          }
-          env {
-            name  = "SELKIES_USE_CPU"
-            value = "false"
-          }
-          env {
-            name  = "MAX_RES"
-            value = "3840x2160"
-          }
-          env {
-            name  = "START_DOCKER"
-            value = "false"
-          }
-
-          port {
-            name           = "desktop"
-            container_port = 3000
-            protocol       = "TCP"
+            name  = "SHELL"
+            value = "/bin/bash"
           }
 
           resources {
@@ -264,6 +232,9 @@ resource "kubernetes_deployment_v1" "workspace" {
           }
 
           security_context {
+            run_as_user                = 1000
+            run_as_group               = 1000
+            run_as_non_root            = true
             allow_privilege_escalation = false
             capabilities {
               drop = ["ALL"]
@@ -272,44 +243,11 @@ resource "kubernetes_deployment_v1" "workspace" {
 
           volume_mount {
             name       = "workspace"
-            mount_path = "/config"
+            mount_path = "/home/coder"
           }
           volume_mount {
             name       = "shm"
             mount_path = "/dev/shm"
-          }
-        }
-
-        container {
-          name    = "coder-agent"
-          image   = local.workspace_image
-          command = ["sh", "-c", coder_agent.main.init_script]
-
-          env {
-            name  = "CODER_AGENT_TOKEN"
-            value = coder_agent.main.token
-          }
-          env {
-            name  = "HOME"
-            value = "/config"
-          }
-
-          resources {
-            requests = { cpu = "100m", memory = "256Mi" }
-            limits   = { cpu = "1", memory = "1Gi" }
-          }
-
-          security_context {
-            run_as_user                = 1000
-            run_as_group               = 1000
-            run_as_non_root            = true
-            allow_privilege_escalation = false
-            capabilities { drop = ["ALL"] }
-          }
-
-          volume_mount {
-            name       = "workspace"
-            mount_path = "/config"
           }
         }
 

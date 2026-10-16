@@ -1,9 +1,11 @@
 # syntax=docker/dockerfile:1.7
 
-FROM lscr.io/linuxserver/webtop:ubuntu-xfce@sha256:51cc1e6fa00ffbd41c05b61bb3b36f30dd68e35206501407fe6980ffd1d56982
+FROM debian:trixie-slim@sha256:a29215f6a35e51e22adffa17f89e9d2ef06214e64a2bad10d765c46aea49f11f
 
 ARG TARGETARCH
 
+# renovate: datasource=github-releases depName=selkies-project/selkies
+ARG SELKIES_VERSION=2.0.0
 # renovate: datasource=github-releases depName=microsoft/vscode
 ARG VSCODE_VERSION=1.142.0
 # renovate: datasource=github-releases depName=espressif/esp-idf
@@ -29,8 +31,9 @@ ARG CODEX_VERSION=0.162.1
 ARG YQ_VERSION=v4.54.1
 
 ENV DEBIAN_FRONTEND=noninteractive \
+    HOME=/home/coder \
     IDF_PATH=/opt/esp/idf \
-    IDF_TOOLS_PATH=/config/.espressif \
+    IDF_TOOLS_PATH=/home/coder/.espressif \
     ESP_IDF_VERSION=${ESP_IDF_VERSION} \
     ESP_IDF_TARGETS=${ESP_IDF_TARGETS} \
     PATH=/opt/esp-tools/bin:/opt/esphome/bin:/opt/platformio/bin:/usr/local/bin:${PATH}
@@ -46,7 +49,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       clang-format \
       clang-tidy \
       cmake \
+      chromium \
       curl \
+      dbus-x11 \
       dfu-util \
       dnsutils \
       fd-find \
@@ -69,6 +74,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       ninja-build \
       openssh-client \
       picocom \
+      pulseaudio \
       python3 \
       python3-pip \
       python3-venv \
@@ -79,11 +85,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       socat \
       unzip \
       usbutils \
+      util-linux \
       vainfo \
       wget \
+      xfce4 \
+      xfce4-terminal \
+      xvfb \
       xz-utils \
       zip \
     && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    case "${TARGETARCH}" in amd64) arch=amd64 ;; arm64) arch=arm64 ;; *) exit 1 ;; esac; \
+    package="selkies-${SELKIES_VERSION}-trixie-${arch}.deb"; \
+    curl -fsSL \
+      "https://github.com/selkies-project/selkies/releases/download/${SELKIES_VERSION}/${package}" \
+      -o "/tmp/${package}"; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends "/tmp/${package}"; \
+    rm -f "/tmp/${package}"; \
+    rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
     case "${TARGETARCH}" in \
@@ -150,7 +171,7 @@ RUN python3 -m venv /opt/esp-tools \
     && /opt/platformio/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
     && /opt/platformio/bin/pip install --no-cache-dir "platformio==${PLATFORMIO_VERSION}"
 
-RUN git clone --branch "${ESP_IDF_VERSION}" --depth 1 --recursive \
+RUN git clone --branch "${ESP_IDF_VERSION}" --depth 1 --recursive --shallow-submodules \
       https://github.com/espressif/esp-idf.git "${IDF_PATH}" \
     && rm -rf "${IDF_PATH}/.git" \
     && printf '%s\n' \
@@ -171,12 +192,17 @@ RUN install -d /opt/vscode-extensions /tmp/vscode-data \
 COPY defaults/ /opt/workspace-defaults/
 COPY root/ /
 
-RUN chmod 0755 /custom-cont-init.d/20-coder-workspace \
-      /usr/local/bin/bootstrap-esp-idf /usr/local/bin/idf.py \
-    && chmod -R a+rX /opt/esp-tools /opt/esphome /opt/platformio \
-      /opt/vscode-extensions /opt/workspace-defaults
+RUN groupadd --gid 1000 coder \
+    && useradd --uid 1000 --gid coder --create-home --shell /bin/bash coder \
+    && chown -R coder:coder /home/coder \
+    && install -d -m 1777 /tmp/.ICE-unix /tmp/.X11-unix \
+    && chmod 0755 /usr/local/bin/coder-workspace-init \
+      /usr/local/bin/bootstrap-esp-idf /usr/local/bin/idf.py
 
 ENV DEBIAN_FRONTEND=
+
+USER coder
+WORKDIR /home/coder
 
 LABEL org.opencontainers.image.source="https://github.com/ExhaleSthlm/coder-images-and-templates" \
       org.opencontainers.image.description="ESP32 development desktop for Coder with XFCE, Selkies and VS Code"

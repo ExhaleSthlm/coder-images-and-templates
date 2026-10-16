@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+install -d \
+  "${HOME}/workspace" \
+  "${HOME}/.vscode/extensions" \
+  "${HOME}/.config/Code/User" \
+  "${HOME}/.config/autostart" \
+  "${HOME}/.espressif"
+
+find "${HOME}/.vscode/extensions" -maxdepth 1 -type l \
+  -lname '/opt/vscode-extensions/*' -delete
+
+for extension in /opt/vscode-extensions/*; do
+  [[ -d "${extension}" ]] || continue
+  target="${HOME}/.vscode/extensions/$(basename "${extension}")"
+  [[ -e "${target}" || -L "${target}" ]] || ln -s "${extension}" "${target}"
+done
+
+if [[ ! -e "${HOME}/.config/Code/User/settings.json" ]]; then
+  install -m 0644 \
+    /opt/workspace-defaults/settings.json \
+    "${HOME}/.config/Code/User/settings.json"
+fi
+
+if [[ ! -e "${HOME}/.config/autostart/code.desktop" ]]; then
+  install -m 0644 \
+    /opt/workspace-defaults/code.desktop \
+    "${HOME}/.config/autostart/code.desktop"
+fi
+
+/usr/local/bin/bootstrap-esp-idf

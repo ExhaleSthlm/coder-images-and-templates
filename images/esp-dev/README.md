@@ -1,7 +1,8 @@
 # ESP development image
 
-XFCE development desktop streamed by Selkies and intended for the `esp-dev`
-Coder template.
+XFCE development desktop streamed by Selkies 2 and intended for the `esp-dev`
+Coder template. The image provides `selkies-session`; Coder starts it through
+Selkies' official Terraform module and proxies it over an authenticated path.
 
 ## Included toolchains
 
@@ -15,10 +16,10 @@ Coder template.
 - Chromium, MQTT and serial/network troubleshooting tools
 
 The image contains no credentials. GitHub, Codex, MQTT and device credentials
-must be configured at runtime and are persisted under `/config`.
+must be configured at runtime and are persisted under `/home/coder`.
 
-ESP-IDF toolchains are installed into `/config/.espressif` during the first
-desktop start. This keeps OCI layers small enough for Talos/containerd and
+ESP-IDF toolchains are installed into `/home/coder/.espressif` during the first
+workspace start. This keeps OCI layers small enough for Talos/containerd and
 persists the downloaded tools across workspace restarts and image updates.
 
 ## Remote serial

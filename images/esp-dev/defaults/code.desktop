@@ -2,7 +2,7 @@
 Type=Application
 Name=Visual Studio Code
 Comment=ESP development workspace
-Exec=/usr/bin/code --no-sandbox /config/workspace
+Exec=/usr/bin/code /home/coder/workspace
 Icon=code
 Terminal=false
 Categories=Development;IDE;

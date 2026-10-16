@@ -2,9 +2,9 @@
 
 Creates a workspace in `coder-workspaces` with:
 
-- an Intel i915 accelerated XFCE/Selkies desktop
+- an Intel i915 accelerated XFCE desktop using Selkies' official Coder module
 - the full ESP toolchain available to VS Code and the Coder agent
-- a replicated LINSTOR PVC mounted at `/config`
+- a replicated LINSTOR PVC mounted as the Coder user's home directory
 - labels consumed by the daily Velero volume snapshot backup
 - path-based access through `https://coder.myk8s.se`
 
