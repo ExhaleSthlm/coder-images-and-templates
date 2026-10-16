@@ -217,6 +217,10 @@ resource "kubernetes_deployment_v1" "workspace" {
             name  = "SHELL"
             value = "/bin/bash"
           }
+          env {
+            name  = "SELKIES_USE_CPU"
+            value = "true"
+          }
 
           resources {
             requests = {
